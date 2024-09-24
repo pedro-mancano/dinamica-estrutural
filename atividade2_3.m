@@ -2,18 +2,24 @@ close all;
 clc;
 
 % Parâmetros
-m = 200;
-k = 10^6;
-zeta = 0.06;
+m = 10;
+k = 4000;
+c = 20;
 wn = sqrt(k / m);
-c = 2 * zeta * wn * m;
+zeta = c / (2*wn*m);
 wd = wn * sqrt(1 - zeta^2);
 s = 0.0005; % passo de tempo
-tf = 0.5;
+tf = 5;
 t = 0:s:tf; % vetor de tempo
 
+% Função de força y(t)
+y = @(t) 0.005 * sin(5 * t);
+
+% Função de força y'(t)
+dydt = @(t) 5 * 0.005 * cos(5 * t);
+
 % Função de força f(t)
-f = @(t) 200 * (1 - cos(pi * t / 0.2).^2) .* (1 - heaviside(t - 0.2));
+f = @(t) k*y(t) + c*dydt(t);
 
 % Funão resposta ao impulso h(t)
 h = @(t) exp(-zeta * wn * t) .* sin(wd * t) / (m * wd);
@@ -44,7 +50,7 @@ xlabel("Tempo [segundos]");
 ylabel("F(t) [metros]");
 title("Entrada");
 
-print(gcf, 'atividade1_entrada', '-dpng', '-r300');
+print(gcf, 'atividade2_3_entrada', '-dpng', '-r300');
 
 % Gráfico da resposta x(t)
 figure;
@@ -52,42 +58,12 @@ hold on;
 grid on;
 
 plot(t, x_n, 'DisplayName', 'Método de Newmark', 'linewidth', 1.7);
-plot(t, x, 'DisplayName', 'Método dos Trapézios', 'linewidth', 1.7, 'linestyle','--');
-plot(t, x_f, 'DisplayName', 'Método das Diferenças Dinitas', 'linewidth', 1.7, 'linestyle','--');
+plot(t, x, 'DisplayName', 'Método da Convolução', 'linewidth', 1.7, 'linestyle','--');
+plot(t, x_f, 'DisplayName', 'Método das Diferenças Dinitas', 'linewidth', 1.7, 'linestyle','-.');
 xlabel("Tempo [segundos]");
 ylabel("X(t) [metros]");
 title("Resposta");
 
 legend;
 
-print(gcf, 'atividade1_resposta', '-dpng', '-r300');
-
-% Fast Fourier Transform (FFT)
-X = fft(x);
-
-figure;
-hold on;
-grid on;
-
-plot((1/s)/tf*(t), abs(X), 'linewidth', 1.7);
-xlim([0, 50]);
-xlabel('Frequencia (Hz)');
-ylabel('X(w)');
-title('Domínio da Frequencia');
-
-print(gcf, 'atividade1_dominio_frequencia', '-dpng', '-r300');
-
-% Inverse Fast Fourier Transform (IFFT)
-x_reconstructed = ifft(X);
-
-figure;
-hold on;
-grid on;
-
-xlabel("Tempo [segundos]");
-ylabel("X(t) [metros]");
-title("Resposta Reconstruida");
-
-plot(t, x_reconstructed, 'linewidth', 1.7);
-
-print(gcf, 'atividade1_resposta_reconstruida', '-dpng', '-r300');
+print(gcf, 'atividade2_3_resposta', '-dpng', '-r300');
